@@ -1,0 +1,6 @@
+"AddonInfo"	
+{
+	"foo.vpk"	"1"
+	"bar baz.vpk"	"0"
+	"foo \"bar\"\n"	"1"
+}
