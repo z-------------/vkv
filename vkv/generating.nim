@@ -6,12 +6,7 @@ import std/[
 proc dumpHook*(s: var string; v: string; depth = 0; topLevel: static bool = false) =
   s.add '"'
   for c in v:
-    case c
-    of '\n': s.add """\n"""
-    of '\t': s.add """\t"""
-    of '\\': s.add """\\"""
-    of '"': s.add """\""""
-    else: s.add c
+    s.add c
   s.add '"'
 
 template dumpHookTableImpl(s, v, depth, topLevel: untyped; iter: iterable) =

@@ -15,7 +15,7 @@ test "generate addonlist":
     AddonInfo: {
       "foo.vpk": "1",
       "bar baz.vpk": "0",
-      "foo \"bar\"\n": "1",
+      "foo\\bar": "1",
     }.toOrderedTable,
   )
   let s = root.toKeyvalues
