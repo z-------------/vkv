@@ -61,7 +61,9 @@ proc parseHook*(s: string; i: var int; v: var string; topLevel: static bool = fa
   if quoted and not ended:
     raise (ref KeyvaluesError)(msg: "expected end of string, got end of input")
 
-proc parseHook*[K, V](s: string; i: var int; v: var Table[K, V]; topLevel: static bool = false) =
+type SomeTable[K, V] = Table[K, V] or OrderedTable[K, V]
+
+proc parseHook*[K, V](s: string; i: var int; v: var SomeTable[K, V]; topLevel: static bool = false) =
   skipJunk(s, i)
   when not topLevel:
     consume(s, i, '{')

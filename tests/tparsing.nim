@@ -24,7 +24,7 @@ test "basic":
 test "parse addonlist":
   type
     Root = object
-      AddonList: Table[string, string]
+      AddonList: OrderedTable[string, string]
 
   let s = readTestFile(Path "addonlist.txt")
   let root = Root.fromKeyvalues(s)
@@ -33,7 +33,7 @@ test "parse addonlist":
       "123.vpk": "1",
       "234.vpk": "0",
       "345.vpk": "1",
-    }.toTable,
+    }.toOrderedTable,
   )
 
 test "parse addoninfo":
