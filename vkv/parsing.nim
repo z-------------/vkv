@@ -1,6 +1,7 @@
 import std/[
-  tables,
+  json,
   strformat,
+  tables,
 ]
 
 type
@@ -77,6 +78,37 @@ proc parseHook*[K, V](s: string; i: var int; v: var SomeTable[K, V]; topLevel: s
     skipJunk(s, i)
   when not topLevel:
     consume(s, i, '}')
+
+proc parseHook*(s: string; i: var int; v: var JsonNode; topLevel: static bool = false) =
+  template parseEntries(): untyped =
+    while i < s.len and s[i] != '}':
+      var
+        key: string
+        value: JsonNode
+      parseHook(s, i, key)
+      parseHook(s, i, value)
+      v[key] = value
+      skipJunk(s, i)
+
+  # if top level, assume it is an object
+  # otherwise, decide what it is based on whether the first char is '{'
+  skipJunk(s, i)
+  when topLevel:
+    v = newJObject()
+    parseEntries()
+  else:
+    if i >= s.len:
+      raise (ref KeyvaluesError)(msg: "expected value, got end of input")
+    case s[i]
+    of '{':
+      consume(s, i, '{')
+      v = newJObject()
+      parseEntries()
+      consume(s, i, '}')
+    else:
+      var str: string
+      parseHook(s, i, str)
+      v = newJString(str)
 
 proc parseHook*[T: object](s: string; i: var int; v: var T; topLevel: static bool = false) =
   skipJunk(s, i)

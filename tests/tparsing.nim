@@ -36,6 +36,19 @@ test "parse addonlist":
     }.toOrderedTable,
   )
 
+import std/json
+
+test "parse addonlist to JsonNode":
+  let s = readTestFile(Path "addonlist.txt")
+  let root = JsonNode.fromKeyvalues(s)
+  check root == %*{
+    "AddonList": {
+      "123.vpk": "1",
+      "234.vpk": "0",
+      "345.vpk": "1",
+    },
+  }
+
 test "parse addoninfo":
   type
     Root = object
