@@ -131,6 +131,7 @@ proc parseHook*[T: object](s: string; i: var int; v: var T; topLevel: static boo
     consume(s, i, '}')
 
 proc fromKeyvalues*(t: typedesc; s: string): t =
+  result = default(t)
   var i = 0
   parseHook(s, i, result, topLevel = true)
   skipJunk(s, i)

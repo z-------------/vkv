@@ -32,4 +32,5 @@ proc dumpHook*[T: object](s: var string; v: T; depth = 0; topLevel: static bool 
   dumpHookTableImpl(s, v, depth, topLevel, fieldPairs(v))
 
 proc toKeyvalues*[T](v: T): string =
+  result = ""
   dumpHook(result, v, 0, true)
