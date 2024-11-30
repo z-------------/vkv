@@ -2,12 +2,14 @@ import std/[
   json,
   strformat,
   tables,
+  unicode,
 ]
 
 type
   KeyvaluesError* = object of ValueError
   KeyvaluesParseOption* = enum
     TopLevel
+    CaseInsensitive
 
 proc hasString(s: string; i: int; str: string): bool =
   i + str.len <= s.len and s.toOpenArray(i, i + str.high) == str
@@ -114,6 +116,9 @@ proc parseHook*(s: string; i: var int; v: out JsonNode; opts: set[KeyvaluesParse
       parseHook(s, i, str, opts - {TopLevel})
       v = newJString(str)
 
+proc eqIgnoreCase(a, b: openArray[char]): bool {.raises: [].} =
+  cmpRunesIgnoreCase(a, b) == 0
+
 proc parseHook*[T: object](s: string; i: var int; v: out T; opts: set[KeyvaluesParseOption]) =
   v = default T
   skipJunk(s, i)
@@ -124,8 +129,7 @@ proc parseHook*[T: object](s: string; i: var int; v: out T; opts: set[KeyvaluesP
     parseHook(s, i, key, opts - {TopLevel})
     var found = false
     for fieldName, fieldValue in fieldPairs(v):
-      # TODO (optional?) case insensitivity
-      if fieldName == key:
+      if fieldName == key or (CaseInsensitive in opts and eqIgnoreCase(fieldName, key)):
         found = true
         parseHook(s, i, fieldValue, opts - {TopLevel})
         break
