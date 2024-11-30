@@ -3,8 +3,14 @@ import ./utils
 import std/[
   tables,
   unittest,
+  uri,
   paths,
 ]
+
+proc parseHook(s: string; i: var int; v: out Uri; opts: set[KeyvaluesParseOption]) =
+  var str: string
+  parseHook(s, i, str, opts)
+  v = parseUri(str)
 
 test "basic":
   check string.fromKeyvalues(""" "hello world" """) == "hello world"
@@ -111,5 +117,24 @@ test "case insensitivity":
       addonSteamAppId: "550",
       addonTitle: "Some Addon",
       addonUrl0: "https://example.com/",
+    ),
+  )
+
+test "custom parseHook":
+  type
+    Root = object
+      addonInfo: AddonInfo
+    AddonInfo = object
+      addonSteamAppId: string
+      addonTitle: string
+      addonUrl0: Uri
+
+  let s = readTestFile(Path "addoninfo.txt")
+  let root = Root.fromKeyvalues(s, DefaultKeyvaluesParseOptions + {CaseInsensitive})
+  check root == Root(
+    addonInfo: AddonInfo(
+      addonSteamAppId: "550",
+      addonTitle: "Some Addon",
+      addonUrl0: parseUri"https://example.com/",
     ),
   )
