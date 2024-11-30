@@ -37,7 +37,8 @@ proc consume(s: string; i: var int; c: char) =
     raise (ref KeyvaluesError)(msg: &"expected '{c}', got '{s[i]}'")
   inc i
 
-proc parseHook*(s: string; i: var int; v: var string; topLevel: static bool = false) =
+proc parseHook*(s: string; i: var int; v: out string; topLevel: static bool = false) =
+  v = ""
   skipJunk(s, i)
   if i >= s.high:
     raise (ref KeyvaluesError)(msg: "expected string, got end of input")
@@ -64,7 +65,8 @@ proc parseHook*(s: string; i: var int; v: var string; topLevel: static bool = fa
 
 type SomeTable[K, V] = Table[K, V] or OrderedTable[K, V]
 
-proc parseHook*[K, V](s: string; i: var int; v: var SomeTable[K, V]; topLevel: static bool = false) =
+proc parseHook*[K, V; T: SomeTable[K, V]](s: string; i: var int; v: out T; topLevel: static bool = false) =
+  v = default T
   skipJunk(s, i)
   when not topLevel:
     consume(s, i, '{')
@@ -79,7 +81,7 @@ proc parseHook*[K, V](s: string; i: var int; v: var SomeTable[K, V]; topLevel: s
   when not topLevel:
     consume(s, i, '}')
 
-proc parseHook*(s: string; i: var int; v: var JsonNode; topLevel: static bool = false) =
+proc parseHook*(s: string; i: var int; v: out JsonNode; topLevel: static bool = false) =
   template parseEntries(): untyped =
     while i < s.len and s[i] != '}':
       var
@@ -110,7 +112,8 @@ proc parseHook*(s: string; i: var int; v: var JsonNode; topLevel: static bool = 
       parseHook(s, i, str)
       v = newJString(str)
 
-proc parseHook*[T: object](s: string; i: var int; v: var T; topLevel: static bool = false) =
+proc parseHook*[T: object](s: string; i: var int; v: out T; topLevel: static bool = false) =
+  v = default T
   skipJunk(s, i)
   when not topLevel:
     consume(s, i, '{')
