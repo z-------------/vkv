@@ -134,7 +134,9 @@ proc parseHook*[T: object](s: string; i: var int; v: out T; opts: set[KeyvaluesP
         parseHook(s, i, fieldValue, opts - {TopLevel})
         break
     if not found:
-      raise (ref KeyvaluesError)(msg: &"{$T} has no field named '{key}'")
+      # TODO more efficient way to skip value?
+      var node: JsonNode
+      parseHook(s, i, node, opts - {TopLevel})
     skipJunk(s, i)
   if TopLevel notin opts:
     consume(s, i, '}')

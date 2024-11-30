@@ -75,3 +75,22 @@ test "parse addoninfo":
       "addonContent_Skin": "1",
     }.toTable,
   )
+
+test "extra keys":
+  type
+    Root = object
+      AddonInfo: AddonInfo
+    AddonInfo = object
+      addonSteamAppID: string
+      addontitle: string
+      addonURL0: string
+
+  let s = readTestFile(Path "addoninfo.txt")
+  let root = Root.fromKeyvalues(s)
+  check root == Root(
+    AddonInfo: AddonInfo(
+      addonSteamAppID: "550",
+      addontitle: "Some Addon",
+      addonURL0: "https://example.com/",
+    ),
+  )
