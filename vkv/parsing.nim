@@ -6,6 +6,8 @@ import std/[
 
 type
   KeyvaluesError* = object of ValueError
+  KeyvaluesParseOption* = enum
+    TopLevel
 
 proc hasString(s: string; i: int; str: string): bool =
   i + str.len <= s.len and s.toOpenArray(i, i + str.high) == str
@@ -37,7 +39,7 @@ proc consume(s: string; i: var int; c: char) =
     raise (ref KeyvaluesError)(msg: &"expected '{c}', got '{s[i]}'")
   inc i
 
-proc parseHook*(s: string; i: var int; v: out string; topLevel: static bool = false) =
+proc parseHook*(s: string; i: var int; v: out string; opts: set[KeyvaluesParseOption]) =
   v = ""
   skipJunk(s, i)
   if i >= s.high:
@@ -65,37 +67,37 @@ proc parseHook*(s: string; i: var int; v: out string; topLevel: static bool = fa
 
 type SomeTable[K, V] = Table[K, V] or OrderedTable[K, V]
 
-proc parseHook*[K, V; T: SomeTable[K, V]](s: string; i: var int; v: out T; topLevel: static bool = false) =
+proc parseHook*[K, V; T: SomeTable[K, V]](s: string; i: var int; v: out T; opts: set[KeyvaluesParseOption]) =
   v = default T
   skipJunk(s, i)
-  when not topLevel:
+  if TopLevel notin opts:
     consume(s, i, '{')
   while i < s.len and s[i] != '}':
     var
       key = default K
       value = default V
-    parseHook(s, i, key)
-    parseHook(s, i, value)
+    parseHook(s, i, key, opts - {TopLevel})
+    parseHook(s, i, value, opts - {TopLevel})
     v[key] = value
     skipJunk(s, i)
-  when not topLevel:
+  if TopLevel notin opts:
     consume(s, i, '}')
 
-proc parseHook*(s: string; i: var int; v: out JsonNode; topLevel: static bool = false) =
+proc parseHook*(s: string; i: var int; v: out JsonNode; opts: set[KeyvaluesParseOption]) =
   template parseEntries(): untyped =
     while i < s.len and s[i] != '}':
       var
         key: string
         value: JsonNode
-      parseHook(s, i, key)
-      parseHook(s, i, value)
+      parseHook(s, i, key, opts - {TopLevel})
+      parseHook(s, i, value, opts - {TopLevel})
       v[key] = value
       skipJunk(s, i)
 
   # if top level, assume it is an object
   # otherwise, decide what it is based on whether the first char is '{'
   skipJunk(s, i)
-  when topLevel:
+  if TopLevel in opts:
     v = newJObject()
     parseEntries()
   else:
@@ -109,34 +111,34 @@ proc parseHook*(s: string; i: var int; v: out JsonNode; topLevel: static bool = 
       consume(s, i, '}')
     else:
       var str: string
-      parseHook(s, i, str)
+      parseHook(s, i, str, opts - {TopLevel})
       v = newJString(str)
 
-proc parseHook*[T: object](s: string; i: var int; v: out T; topLevel: static bool = false) =
+proc parseHook*[T: object](s: string; i: var int; v: out T; opts: set[KeyvaluesParseOption]) =
   v = default T
   skipJunk(s, i)
-  when not topLevel:
+  if TopLevel notin opts:
     consume(s, i, '{')
   while i < s.len and s[i] != '}':
     var key: string
-    parseHook(s, i, key)
+    parseHook(s, i, key, opts - {TopLevel})
     var found = false
     for fieldName, fieldValue in fieldPairs(v):
       # TODO (optional?) case insensitivity
       if fieldName == key:
         found = true
-        parseHook(s, i, fieldValue)
+        parseHook(s, i, fieldValue, opts - {TopLevel})
         break
     if not found:
       raise (ref KeyvaluesError)(msg: &"{$T} has no field named '{key}'")
     skipJunk(s, i)
-  when not topLevel:
+  if TopLevel notin opts:
     consume(s, i, '}')
 
-proc fromKeyvalues*(t: typedesc; s: string): t =
+proc fromKeyvalues*(t: typedesc; s: string; opts = {TopLevel}): t =
   result = default(t)
   var i = 0
-  parseHook(s, i, result, topLevel = true)
+  parseHook(s, i, result, opts)
   skipJunk(s, i)
   if i < s.len:
     raise (ref KeyvaluesError)(msg: &"unexpected trailing content: '{s.toOpenArray(i, s.high)}'")
