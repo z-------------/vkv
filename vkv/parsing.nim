@@ -11,6 +11,8 @@ type
     TopLevel
     CaseInsensitive
 
+const DefaultKeyvaluesParseOptions* = {TopLevel}
+
 proc hasString(s: string; i: int; str: string): bool =
   i + str.len <= s.len and s.toOpenArray(i, i + str.high) == str
 
@@ -141,7 +143,7 @@ proc parseHook*[T: object](s: string; i: var int; v: out T; opts: set[KeyvaluesP
   if TopLevel notin opts:
     consume(s, i, '}')
 
-proc fromKeyvalues*(t: typedesc; s: string; opts = {TopLevel}): t =
+proc fromKeyvalues*(t: typedesc; s: string; opts = DefaultKeyvaluesParseOptions): t =
   result = default(t)
   var i = 0
   parseHook(s, i, result, opts)

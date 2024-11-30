@@ -94,3 +94,22 @@ test "extra keys":
       addonURL0: "https://example.com/",
     ),
   )
+
+test "case insensitivity":
+  type
+    Root = object
+      addonInfo: AddonInfo
+    AddonInfo = object
+      addonSteamAppId: string
+      addonTitle: string
+      addonUrl0: string
+
+  let s = readTestFile(Path "addoninfo.txt")
+  let root = Root.fromKeyvalues(s, DefaultKeyvaluesParseOptions + {CaseInsensitive})
+  check root == Root(
+    addonInfo: AddonInfo(
+      addonSteamAppId: "550",
+      addonTitle: "Some Addon",
+      addonUrl0: "https://example.com/",
+    ),
+  )
