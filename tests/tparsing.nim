@@ -111,7 +111,7 @@ test "case insensitivity":
       addonUrl0: string
 
   let s = readTestFile(Path "addoninfo.txt")
-  let root = Root.fromKeyvalues(s, DefaultKeyvaluesParseOptions + {CaseInsensitive})
+  let root = Root.fromKeyvalues(s, {CaseInsensitive})
   check root == Root(
     addonInfo: AddonInfo(
       addonSteamAppId: "550",
@@ -130,7 +130,7 @@ test "custom parseHook":
       addonUrl0: Uri
 
   let s = readTestFile(Path "addoninfo.txt")
-  let root = Root.fromKeyvalues(s, DefaultKeyvaluesParseOptions + {CaseInsensitive})
+  let root = Root.fromKeyvalues(s, {CaseInsensitive})
   check root == Root(
     addonInfo: AddonInfo(
       addonSteamAppId: "550",

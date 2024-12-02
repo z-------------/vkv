@@ -11,8 +11,6 @@ type
     TopLevel
     CaseInsensitive
 
-const DefaultKeyvaluesParseOptions* = {TopLevel}
-
 proc hasString(s: string; i: int; str: string): bool =
   i + str.len <= s.len and s.toOpenArray(i, i + str.high) == str
 
@@ -143,10 +141,10 @@ proc parseHook*[T: object](s: string; i: var int; v: out T; opts: set[KeyvaluesP
   if TopLevel notin opts:
     consume(s, i, '}')
 
-proc fromKeyvalues*(t: typedesc; s: string; opts = DefaultKeyvaluesParseOptions): t =
+proc fromKeyvalues*(t: typedesc; s: string; opts: set[KeyvaluesParseOption] = {}): t =
   result = default(t)
   var i = 0
-  parseHook(s, i, result, opts)
+  parseHook(s, i, result, opts + {TopLevel})
   skipJunk(s, i)
   if i < s.len:
     raise (ref KeyvaluesError)(msg: &"unexpected trailing content: '{s.toOpenArray(i, s.high)}'")
