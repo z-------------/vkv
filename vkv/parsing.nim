@@ -85,12 +85,19 @@ proc parseHook*[K, V; T: SomeTable[K, V]](s: string; i: var int; v: out T; opts:
   if TopLevel notin opts:
     consume(s, i, '}')
 
-proc parseHook*(s: string; i: var int; v: out JsonNode; opts: set[KeyvaluesParseOption]) =
+type
+  KeyvaluesVoid = object
+
+proc `[]=`(kvv: KeyvaluesVoid; key: string; value: KeyvaluesVoid) =
+  discard
+
+template parseHookDynamicImpl(s, i, v, opts: untyped; objConstr, strConstr: untyped) =
+  # TODO skip allocating keys when v is KeyvaluesVoid?
   template parseEntries(): untyped =
     while i < s.len and s[i] != '}':
       var
         key: string
-        value: JsonNode
+        value: typeof(v)
       parseHook(s, i, key, opts - {TopLevel})
       parseHook(s, i, value, opts - {TopLevel})
       v[key] = value
@@ -100,7 +107,7 @@ proc parseHook*(s: string; i: var int; v: out JsonNode; opts: set[KeyvaluesParse
   # otherwise, decide what it is based on whether the first char is '{'
   skipJunk(s, i)
   if TopLevel in opts:
-    v = newJObject()
+    v = objConstr
     parseEntries()
   else:
     if i >= s.len:
@@ -108,13 +115,19 @@ proc parseHook*(s: string; i: var int; v: out JsonNode; opts: set[KeyvaluesParse
     case s[i]
     of '{':
       consume(s, i, '{')
-      v = newJObject()
+      v = objConstr
       parseEntries()
       consume(s, i, '}')
     else:
-      var str: string
+      var str {.inject.}: string
       parseHook(s, i, str, opts - {TopLevel})
-      v = newJString(str)
+      v = strConstr
+
+proc parseHook*(s: string; i: var int; v: out JsonNode; opts: set[KeyvaluesParseOption]) =
+  parseHookDynamicImpl(s, i, v, opts, newJObject(), newJString(str))
+
+proc parseHook*(s: string; i: var int; v: out KeyvaluesVoid; opts: set[KeyvaluesParseOption]) =
+  parseHookDynamicImpl(s, i, v, opts, KeyvaluesVoid(), KeyvaluesVoid())
 
 proc eqIgnoreCase(a, b: openArray[char]): bool {.raises: [].} =
   cmpRunesIgnoreCase(a, b) == 0
@@ -134,9 +147,8 @@ proc parseHook*[T: object](s: string; i: var int; v: out T; opts: set[KeyvaluesP
         parseHook(s, i, fieldValue, opts - {TopLevel})
         break
     if not found:
-      # TODO more efficient way to skip value?
-      var node: JsonNode
-      parseHook(s, i, node, opts - {TopLevel})
+      var nothing: KeyvaluesVoid
+      parseHook(s, i, nothing, opts - {TopLevel})
     skipJunk(s, i)
   if TopLevel notin opts:
     consume(s, i, '}')
