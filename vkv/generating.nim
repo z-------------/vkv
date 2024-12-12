@@ -1,3 +1,6 @@
+# Copyright (C) 2024 Zack Guard
+# Licensed under GNU General Public License version 3 or later; see LICENSE
+
 import std/[
   strutils,
   tables,
