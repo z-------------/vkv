@@ -138,3 +138,18 @@ test "custom parseHook":
       addonUrl0: parseUri"https://example.com/",
     ),
   )
+
+test "missing right brace":
+  type
+    Root = object
+      Stuff: Table[string, string]
+
+  check Root.fromKeyvalues("""
+  "Stuff"
+  {
+    "Foo" "bar baz"
+    "Qux" "baz bar"
+  """) == Root(Stuff: {
+    "Foo": "bar baz",
+    "Qux": "baz bar",
+  }.toTable)

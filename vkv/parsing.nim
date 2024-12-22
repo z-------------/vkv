@@ -44,6 +44,12 @@ proc consume(s: string; i: var int; c: char) =
     raise (ref KeyvaluesError)(msg: &"expected '{c}', got '{s[i]}'")
   inc i
 
+proc consumeOrEof(s: string; i: var int; c: char) =
+  if i < s.len:
+    if s[i] != c:
+      raise (ref KeyvaluesError)(msg: &"expected '{c}', got '{s[i]}'")
+    inc i
+
 proc parseHook*(s: string; i: var int; v: out string; opts: set[KeyvaluesParseOption]) =
   v = ""
   skipJunk(s, i)
@@ -86,7 +92,7 @@ proc parseHook*[K, V; T: SomeTable[K, V]](s: string; i: var int; v: out T; opts:
     v[key] = value
     skipJunk(s, i)
   if TopLevel notin opts:
-    consume(s, i, '}')
+    consumeOrEof(s, i, '}')
 
 proc parseHook*(s: string; i: var int; v: out JsonNode; opts: set[KeyvaluesParseOption]) =
   template parseEntries(): untyped =
@@ -113,7 +119,7 @@ proc parseHook*(s: string; i: var int; v: out JsonNode; opts: set[KeyvaluesParse
       consume(s, i, '{')
       v = newJObject()
       parseEntries()
-      consume(s, i, '}')
+      consumeOrEof(s, i, '}')
     else:
       var str: string
       parseHook(s, i, str, opts - {TopLevel})
@@ -142,7 +148,7 @@ proc parseHook*[T: object](s: string; i: var int; v: out T; opts: set[KeyvaluesP
       parseHook(s, i, node, opts - {TopLevel})
     skipJunk(s, i)
   if TopLevel notin opts:
-    consume(s, i, '}')
+    consumeOrEof(s, i, '}')
 
 proc fromKeyvalues*(t: typedesc; s: string; opts: set[KeyvaluesParseOption] = {}): t =
   result = default(t)
