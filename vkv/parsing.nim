@@ -81,6 +81,11 @@ proc parseHook*(s: string; i: var int; v: out string; opts: set[KeyvaluesParseOp
   if quoted and not ended:
     raise (ref KeyvaluesError)(msg: "expected end of string, got end of input")
 
+proc parseHook*(s: string; i: var int; v: out int; opts: set[KeyvaluesParseOption]) =
+  var str: string
+  parseHook(s, i, str, opts)
+  v = parseInt(str)
+
 type SomeTable[K, V] = Table[K, V] or OrderedTable[K, V]
 
 proc parseHook*[K, V; T: SomeTable[K, V]](s: string; i: var int; v: out T; opts: set[KeyvaluesParseOption]) =

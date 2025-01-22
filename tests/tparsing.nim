@@ -159,10 +159,10 @@ test "custom field name":
     Root = object
       fooBar {.name: "foo bar".}: FooBar
     FooBar = object
-      stuff {.name: "baz qux"}: string
+      stuff {.name: "baz qux"}: int
 
   check Root.fromKeyvalues("""
   "foo bar"
   {
     "baz qux" "1"
-  }""") == Root(fooBar: FooBar(stuff: "1"))
+  }""") == Root(fooBar: FooBar(stuff: 1))
