@@ -9,6 +9,7 @@ import std/[
   tables,
   unicode,
 ]
+from std/strutils import parseInt
 
 export common
 
@@ -128,6 +129,24 @@ proc parseHook*(s: string; i: var int; v: out JsonNode; opts: set[KeyvaluesParse
       var str: string
       parseHook(s, i, str, opts - {TopLevel})
       v = newJString(str)
+
+proc parseHook*[T](s: string; i: var int; v: out seq[T]; opts: set[KeyvaluesParseOption]) =
+  v = newSeq[T]()
+  skipJunk(s, i)
+  if TopLevel notin opts:
+    consume(s, i, '{')
+  while i < s.len and s[i] != '}':
+    var key: string
+    parseHook(s, i, key, opts - {TopLevel})
+    let idx = parseInt(key)
+    if idx < 0:
+      raise (ref KeyvaluesError)(msg: "index must be at least 0, got " & $idx)
+    if idx > v.high:
+      v.setLen(idx + 1)
+    parseHook(s, i, v[idx], opts - {TopLevel})
+    skipJunk(s, i)
+  if TopLevel notin opts:
+    consumeOrEof(s, i, '}')
 
 proc eqIgnoreCase(a, b: openArray[char]): bool {.raises: [].} =
   cmpRunesIgnoreCase(a, b) == 0
