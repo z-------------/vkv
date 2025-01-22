@@ -1,6 +1,8 @@
 # Copyright (C) 2024 Zack Guard
 # Licensed under GNU General Public License version 3 or later; see LICENSE
 
+# TODO support `name` pragma
+
 import std/[
   strutils,
   tables,

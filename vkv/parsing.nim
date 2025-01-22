@@ -1,12 +1,16 @@
 # Copyright (C) 2024 Zack Guard
 # Licensed under GNU General Public License version 3 or later; see LICENSE
 
+import ./common
 import std/[
   json,
+  macros,
   strformat,
   tables,
   unicode,
 ]
+
+export common
 
 type
   KeyvaluesError* = object of ValueError
@@ -138,7 +142,12 @@ proc parseHook*[T: object](s: string; i: var int; v: out T; opts: set[KeyvaluesP
     parseHook(s, i, key, opts - {TopLevel})
     var found = false
     for fieldName, fieldValue in fieldPairs(v):
-      if fieldName == key or (CaseInsensitive in opts and eqIgnoreCase(fieldName, key)):
+      const name =
+        when fieldValue.hasCustomPragma(common.name):
+          fieldValue.getCustomPragmaVal(common.name)
+        else:
+          fieldName
+      if name == key or (CaseInsensitive in opts and eqIgnoreCase(name, key)):
         found = true
         parseHook(s, i, fieldValue, opts - {TopLevel})
         break

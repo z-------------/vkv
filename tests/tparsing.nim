@@ -153,3 +153,16 @@ test "missing right brace":
     "Foo": "bar baz",
     "Qux": "baz bar",
   }.toTable)
+
+test "custom field name":
+  type
+    Root = object
+      fooBar {.name: "foo bar".}: FooBar
+    FooBar = object
+      stuff {.name: "baz qux"}: string
+
+  check Root.fromKeyvalues("""
+  "foo bar"
+  {
+    "baz qux" "1"
+  }""") == Root(fooBar: FooBar(stuff: "1"))
