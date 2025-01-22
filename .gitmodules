@@ -1,0 +1,3 @@
+[submodule "ValveKeyValue"]
+	path = ValveKeyValue
+	url = https://github.com/ValveResourceFormat/ValveKeyValue

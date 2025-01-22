@@ -1,5 +1,16 @@
-import std/paths
+import std/[
+  paths,
+  strutils,
+]
 
-template readTestFile*(filename: Path): string =
-  let path = currentSourcePath().Path.parentDir / "data".Path / filename
+let dataPath = currentSourcePath().Path.parentDir / "data".Path
+
+proc readTestFile*(filename: Path): string =
+  let path = dataPath / filename
   readFile(string path)
+
+proc readVKVTestFile*(filename: Path): string =
+  var data = readTestFile("ValveKeyValue".Path / filename)
+  # TODO is this the correct solution? should we instead modify the parser to handle it?
+  data.removePrefix("\xEF\xBB\xBF")
+  data
