@@ -166,3 +166,12 @@ test "custom field name":
   {
     "baz qux" "1"
   }""") == Root(fooBar: FooBar(stuff: 1))
+
+test "ints and floats":
+  check int64.fromKeyvalues($int64.high) == int64.high
+  check int64.fromKeyvalues($int64.low) == int64.low
+  check int32.fromKeyvalues($int32.high) == int32.high
+  check int32.fromKeyvalues($int32.low) == int32.low
+  check float64.fromKeyvalues("3.14") == 3.14'f64
+  check float32.fromKeyvalues("3.14") == 3.14'f32
+

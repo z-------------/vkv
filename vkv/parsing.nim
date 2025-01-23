@@ -9,7 +9,7 @@ import std/[
   tables,
   unicode,
 ]
-from std/strutils import parseInt
+from std/strutils import parseBiggestInt, parseInt, parseFloat
 
 export common
 
@@ -81,10 +81,20 @@ proc parseHook*(s: string; i: var int; v: out string; opts: set[KeyvaluesParseOp
   if quoted and not ended:
     raise (ref KeyvaluesError)(msg: "expected end of string, got end of input")
 
-proc parseHook*(s: string; i: var int; v: out int; opts: set[KeyvaluesParseOption]) =
+proc parseHook*[T: SomeInteger](s: string; i: var int; v: out T; opts: set[KeyvaluesParseOption]) =
   var str: string
   parseHook(s, i, str, opts)
-  v = parseInt(str)
+  v = T(parseBiggestInt(str))
+
+proc parseHook*[T: SomeFloat](s: string; i: var int; v: out T; opts: set[KeyvaluesParseOption]) =
+  var str: string
+  parseHook(s, i, str, opts)
+  v = T(parseFloat(str))
+
+proc parseHook*(s: string; i: var int; v: out bool; opts: set[KeyvaluesParseOption]) =
+  var str: string
+  parseHook(s, i, str, opts)
+  v = parseInt(str) != 0
 
 type SomeTable[K, V] = Table[K, V] or OrderedTable[K, V]
 

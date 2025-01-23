@@ -14,6 +14,15 @@ proc dumpHook*(s: var string; v: string; depth = 0; topLevel: static bool = fals
     s.add c
   s.add '"'
 
+proc dumpHook*(s: var string; v: SomeInteger; depth = 0; topLevel: static bool = false) =
+  dumpHook(s, $v, depth, topLevel)
+
+proc dumpHook*(s: var string; v: SomeFloat; depth = 0; topLevel: static bool = false) =
+  dumpHook(s, $v, depth, topLevel)
+
+proc dumpHook*(s: var string; v: bool; depth = 0; topLevel: static bool = false) =
+  dumpHook(s, if v: "1" else: "0", depth, topLevel)
+
 template dumpHookTableImpl(s, v, depth, topLevel: untyped; iter: iterable) =
   mixin dumpHook
   when not topLevel:
