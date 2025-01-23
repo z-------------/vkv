@@ -26,10 +26,16 @@ proc dumpHook*(s: var string; v: SomeFloat; depth = 0; topLevel: static bool = f
 proc dumpHook*(s: var string; v: bool; depth = 0; topLevel: static bool = false) =
   dumpHook(s, if v: "1" else: "0", depth, topLevel)
 
+proc addNewline(s: var string) =
+  s.removeSuffix '\t'
+  s.add "\n"
+
 template dumpHookTableImpl(s, depth, topLevel: untyped; iter: iterable; checkPragma: static bool) =
   mixin dumpHook
   when not topLevel:
-    s.add "\n{\n"
+    s.addNewline
+    s.add '\t'.repeat(depth - 1)
+    s.add "{\n"
   let indent {.inject.} = '\t'.repeat(depth)
   for fieldName, fieldValue in iter:
     s.add indent
@@ -46,6 +52,7 @@ template dumpHookTableImpl(s, depth, topLevel: untyped; iter: iterable; checkPra
     dumpHook(s, fieldValue, depth + 1)
     s.add '\n'
   when not topLevel:
+    s.add '\t'.repeat(depth - 1)
     s.add "}"
 
 type SomeTable[K, V] = Table[K, V] or OrderedTable[K, V]
@@ -57,7 +64,9 @@ template dumpHookArrayImpl(s, depth, topLevel: untyped; iter: iterable) =
   # similar to the one for tables/objects
   mixin dumpHook
   when not topLevel:
-    s.add "\n{\n"
+    s.addNewline
+    s.add '\t'.repeat(depth - 1)
+    s.add "{\n"
   let indent {.inject.} = '\t'.repeat(depth)
   for idx, val in iter:
     s.add indent
@@ -66,6 +75,7 @@ template dumpHookArrayImpl(s, depth, topLevel: untyped; iter: iterable) =
     dumpHook(s, val, depth + 1)
     s.add '\n'
   when not topLevel:
+    s.add '\t'.repeat(depth - 1)
     s.add "}"
 
 iterator jArrayPairs(v: JsonNode): (int, JsonNode) =
@@ -102,3 +112,4 @@ proc dumpHook*[T: object](s: var string; v: T; depth = 0; topLevel: static bool 
 proc toKeyvalues*[T](v: T): string =
   result = ""
   dumpHook(result, v, 0, true)
+  result.stripLineEnd

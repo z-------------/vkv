@@ -1,9 +1,10 @@
 import pkg/vkv
 import ./utils
 import std/[
+  json,
+  paths,
   tables,
   unittest,
-  paths,
 ]
 
 proc dumpHook(s: var string; v: Path; depth = 0; topLevel: static bool = false) =
@@ -41,3 +42,13 @@ test "custom dumpHook":
   )
   let s = root.toKeyvalues
   check s == readTestFile(Path "expected_addoninfo.txt")
+
+test "nested object":
+  let j = %*{
+    "foo": {
+      "bar": {
+        "baz": 1,
+      },
+    },
+  }
+  check j.toKeyvalues == readTestFile(Path "nested.txt")

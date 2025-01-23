@@ -64,7 +64,6 @@ test "serialize array":
     ),
   )
   let data = readVKVTestFile(Path "list_of_values.vdf")
-  # TODO make the output exactly equal and compare as text
   check Root.fromKeyvalues(r.toKeyvalues) == Root.fromKeyvalues(data)
 
 test "serialize JSON array":
@@ -74,5 +73,4 @@ test "serialize JSON array":
     },
   }
   let data = readVKVTestFile(Path "list_of_values.vdf")
-  # TODO as above
   check JsonNode.fromKeyvalues(j.toKeyvalues) == JsonNode.fromKeyvalues(data)
