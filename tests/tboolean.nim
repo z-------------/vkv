@@ -33,7 +33,7 @@ test "serialize from JsonNode":
     },
   }
   let expected = readVKVTestFile(Path "boolean_serialization.vdf")
-  # they are not character-for-character equal (extra tabs etc.), so instead check that they are equivalent
+  # TODO make the output exactly equal and compare as text
   check JsonNode.fromKeyvalues(j.toKeyvalues) == JsonNode.fromKeyvalues(expected)
 
 test "serialize from object":
@@ -44,5 +44,6 @@ test "serialize from object":
     ),
   )
   let expected = readVKVTestFile(Path "boolean_serialization.vdf")
+  # TODO as above
   check Root.fromKeyvalues(j.toKeyvalues) == Root.fromKeyvalues(expected)
 

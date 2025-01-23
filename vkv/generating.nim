@@ -53,6 +53,28 @@ type SomeTable[K, V] = Table[K, V] or OrderedTable[K, V]
 proc dumpHook*[K, V](s: var string; v: SomeTable[K, V]; depth = 0; topLevel: static bool = false) =
   dumpHookTableImpl(s, depth, topLevel, pairs(v), false)
 
+template dumpHookArrayImpl(s, depth, topLevel: untyped; iter: iterable) =
+  # similar to the one for tables/objects
+  mixin dumpHook
+  when not topLevel:
+    s.add "\n{\n"
+  let indent {.inject.} = '\t'.repeat(depth)
+  for idx, val in iter:
+    s.add indent
+    dumpHook(s, $idx, depth + 1)
+    s.add '\t'
+    dumpHook(s, val, depth + 1)
+    s.add '\n'
+  when not topLevel:
+    s.add "}"
+
+iterator jArrayPairs(v: JsonNode): (int, JsonNode) =
+  assert v.kind == JArray
+  var idx = 0
+  for item in items(v):
+    yield (idx, item)
+    inc idx
+
 proc dumpHook*(s: var string; v: JsonNode; depth = 0; topLevel: static bool = false) =
   case v.kind
   of JNull:
@@ -69,7 +91,10 @@ proc dumpHook*(s: var string; v: JsonNode; depth = 0; topLevel: static bool = fa
   of JObject:
     dumpHookTableImpl(s, depth, topLevel, pairs(v), false)
   of JArray:
-    raise (ref KeyvaluesError)(msg: "serializing arrays is not yet supported")
+    dumpHookArrayImpl(s, depth, topLevel, jArrayPairs(v))
+
+proc dumpHook*[T](s: var string; v: openArray[T]; depth = 0; topLevel: static bool = false) =
+  dumpHookArrayImpl(s, depth, topLevel, pairs(v))
 
 proc dumpHook*[T: object](s: var string; v: T; depth = 0; topLevel: static bool = false) =
   dumpHookTableImpl(s, depth, topLevel, fieldPairs(v), true)
