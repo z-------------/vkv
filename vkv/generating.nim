@@ -3,6 +3,7 @@
 
 import ./common
 import std/[
+  json,
   macros,
   strutils,
   tables,
@@ -51,6 +52,24 @@ type SomeTable[K, V] = Table[K, V] or OrderedTable[K, V]
 
 proc dumpHook*[K, V](s: var string; v: SomeTable[K, V]; depth = 0; topLevel: static bool = false) =
   dumpHookTableImpl(s, depth, topLevel, pairs(v), false)
+
+proc dumpHook*(s: var string; v: JsonNode; depth = 0; topLevel: static bool = false) =
+  case v.kind
+  of JNull:
+    # TODO is this the right thing to do?
+    dumpHook(s, "", depth, topLevel)
+  of JBool:
+    dumpHook(s, v.getBool, depth, topLevel)
+  of JInt:
+    dumpHook(s, v.getInt, depth, topLevel)
+  of JFloat:
+    dumpHook(s, v.getFloat, depth, topLevel)
+  of JString:
+    dumpHook(s, v.getStr, depth, topLevel)
+  of JObject:
+    dumpHookTableImpl(s, depth, topLevel, pairs(v), false)
+  of JArray:
+    raise (ref KeyvaluesError)(msg: "serializing arrays is not yet supported")
 
 proc dumpHook*[T: object](s: var string; v: T; depth = 0; topLevel: static bool = false) =
   dumpHookTableImpl(s, depth, topLevel, fieldPairs(v), true)
