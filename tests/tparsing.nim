@@ -175,3 +175,12 @@ test "ints and floats":
   check float64.fromKeyvalues("3.14") == 3.14'f64
   check float32.fromKeyvalues("3.14") == 3.14'f32
 
+test "array":
+  const data = """
+  "0" "foo"
+  "1" bar
+  2 "baz"
+  """
+  check array[3, string].fromKeyvalues(data) == ["foo", "bar", "baz"]
+  expect KeyvaluesError:
+    discard array[2, string].fromKeyvalues(data)

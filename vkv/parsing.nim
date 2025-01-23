@@ -144,23 +144,33 @@ proc parseHook*(s: string; i: var int; v: out JsonNode; opts: set[KeyvaluesParse
       parseHook(s, i, str, opts - {TopLevel})
       v = newJString(str)
 
-proc parseHook*[T](s: string; i: var int; v: out seq[T]; opts: set[KeyvaluesParseOption]) =
-  v = newSeq[T]()
+template parseHookArrayImpl(s, i, v, opts, checkIdx: untyped) =
   skipJunk(s, i)
   if TopLevel notin opts:
     consume(s, i, '{')
   while i < s.len and s[i] != '}':
     var key: string
     parseHook(s, i, key, opts - {TopLevel})
-    let idx = parseInt(key)
-    if idx < 0:
-      raise (ref KeyvaluesError)(msg: "index must be at least 0, got " & $idx)
-    if idx > v.high:
-      v.setLen(idx + 1)
+    let idx {.inject.} = parseInt(key)
+    checkIdx
     parseHook(s, i, v[idx], opts - {TopLevel})
     skipJunk(s, i)
   if TopLevel notin opts:
     consumeOrEof(s, i, '}')
+
+proc parseHook*[T](s: string; i: var int; v: out seq[T]; opts: set[KeyvaluesParseOption]) =
+  v = newSeq[T]()
+  parseHookArrayImpl(s, i, v, opts):
+    if idx < 0:
+      raise (ref KeyvaluesError)(msg: "index must be at least 0, got " & $idx)
+    if idx > v.high:
+      v.setLen(idx + 1)
+
+proc parseHook*[L: static int; T](s: string; i: var int; v: out array[L, T]; opts: set[KeyvaluesParseOption]) =
+  v = default array[L, T]
+  parseHookArrayImpl(s, i, v, opts):
+    if idx notin v.low .. v.high:
+      raise (ref KeyvaluesError)(msg: &"index must be in {v.low}..{v.high}, got {idx}")
 
 proc eqIgnoreCase(a, b: openArray[char]): bool {.raises: [].} =
   cmpRunesIgnoreCase(a, b) == 0

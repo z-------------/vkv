@@ -2,8 +2,8 @@ import pkg/vkv
 import ./utils
 import std/[
   json,
-  unittest,
   paths,
+  unittest,
 ]
 
 type
@@ -29,11 +29,11 @@ const Numbers = @[
   "thirteen",
 ]
 
-test "parse array":
+test "parse seq":
   let data = readVKVTestFile(Path "list_of_values.vdf")
   check Root.fromKeyvalues(data).testData.Numbers == Numbers
 
-test "parse array with skipped indexes":
+test "parse seq with skipped indexes":
   let data = readVKVTestFile(Path "list_of_values_skipping_keys.vdf")
   check Root.fromKeyvalues(data).testData.Numbers == @[
     "zero",
@@ -52,12 +52,12 @@ test "parse array with skipped indexes":
     "thirteen",
   ]
 
-test "parse array with empty key":
+test "parse seq with empty key":
   let data = readVKVTestFile(Path "list_of_values_empty_key.vdf")
   expect(ValueError):
     discard Root.fromKeyvalues(data)
 
-test "serialize array":
+test "serialize seq":
   let r = Root(
     testData: TestData(
       Numbers: Numbers,
@@ -73,4 +73,6 @@ test "serialize JSON array":
     },
   }
   let data = readVKVTestFile(Path "list_of_values.vdf")
-  check JsonNode.fromKeyvalues(j.toKeyvalues) == JsonNode.fromKeyvalues(data)
+  let j2 = JsonNode.fromKeyvalues(j.toKeyvalues)
+  check j2["test data"]["Numbers"].kind == JObject
+  check j2 == JsonNode.fromKeyvalues(data)
