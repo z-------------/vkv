@@ -11,19 +11,19 @@ import std/[
 
 export common
 
-proc dumpHook*(s: var string; v: string; depth = 0; topLevel: static bool = false) =
+proc dumpHook*(s: var string; v: string; depth: int; topLevel: static bool) =
   s.add '"'
   for c in v:
     s.add c
   s.add '"'
 
-proc dumpHook*(s: var string; v: SomeInteger; depth = 0; topLevel: static bool = false) =
+proc dumpHook*(s: var string; v: SomeInteger; depth: int; topLevel: static bool) =
   dumpHook(s, $v, depth, topLevel)
 
-proc dumpHook*(s: var string; v: SomeFloat; depth = 0; topLevel: static bool = false) =
+proc dumpHook*(s: var string; v: SomeFloat; depth: int; topLevel: static bool) =
   dumpHook(s, $v, depth, topLevel)
 
-proc dumpHook*(s: var string; v: bool; depth = 0; topLevel: static bool = false) =
+proc dumpHook*(s: var string; v: bool; depth: int; topLevel: static bool) =
   dumpHook(s, if v: "1" else: "0", depth, topLevel)
 
 proc addNewline(s: var string) =
@@ -47,9 +47,9 @@ template dumpHookTableImpl(s, depth, topLevel: untyped; iter: iterable; checkPra
           fieldName
     else:
       let name = fieldName
-    dumpHook(s, name, depth + 1)
+    dumpHook(s, name, depth + 1, false)
     s.add '\t'
-    dumpHook(s, fieldValue, depth + 1)
+    dumpHook(s, fieldValue, depth + 1, false)
     s.add '\n'
   when not topLevel:
     s.add '\t'.repeat(depth - 1)
@@ -57,7 +57,7 @@ template dumpHookTableImpl(s, depth, topLevel: untyped; iter: iterable; checkPra
 
 type SomeTable[K, V] = Table[K, V] or OrderedTable[K, V]
 
-proc dumpHook*[K, V](s: var string; v: SomeTable[K, V]; depth = 0; topLevel: static bool = false) =
+proc dumpHook*[K, V](s: var string; v: SomeTable[K, V]; depth: int; topLevel: static bool) =
   dumpHookTableImpl(s, depth, topLevel, pairs(v), false)
 
 template dumpHookArrayImpl(s, depth, topLevel: untyped; iter: iterable) =
@@ -70,9 +70,9 @@ template dumpHookArrayImpl(s, depth, topLevel: untyped; iter: iterable) =
   let indent {.inject.} = '\t'.repeat(depth)
   for idx, val in iter:
     s.add indent
-    dumpHook(s, $idx, depth + 1)
+    dumpHook(s, $idx, depth + 1, false)
     s.add '\t'
-    dumpHook(s, val, depth + 1)
+    dumpHook(s, val, depth + 1, false)
     s.add '\n'
   when not topLevel:
     s.add '\t'.repeat(depth - 1)
@@ -85,7 +85,7 @@ iterator jArrayPairs(v: JsonNode): (int, JsonNode) =
     yield (idx, item)
     inc idx
 
-proc dumpHook*(s: var string; v: JsonNode; depth = 0; topLevel: static bool = false) =
+proc dumpHook*(s: var string; v: JsonNode; depth: int; topLevel: static bool) =
   case v.kind
   of JNull:
     # TODO is this the right thing to do?
@@ -103,10 +103,10 @@ proc dumpHook*(s: var string; v: JsonNode; depth = 0; topLevel: static bool = fa
   of JArray:
     dumpHookArrayImpl(s, depth, topLevel, jArrayPairs(v))
 
-proc dumpHook*[T](s: var string; v: openArray[T]; depth = 0; topLevel: static bool = false) =
+proc dumpHook*[T](s: var string; v: openArray[T]; depth: int; topLevel: static bool) =
   dumpHookArrayImpl(s, depth, topLevel, pairs(v))
 
-proc dumpHook*[T: object](s: var string; v: T; depth = 0; topLevel: static bool = false) =
+proc dumpHook*[T: object](s: var string; v: T; depth: int; topLevel: static bool) =
   dumpHookTableImpl(s, depth, topLevel, fieldPairs(v), true)
 
 proc toKeyvalues*[T](v: T): string =
