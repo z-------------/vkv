@@ -14,7 +14,6 @@ from std/strutils import parseBiggestInt, parseInt, parseFloat
 export common
 
 type
-  KeyvaluesError* = object of ValueError
   KeyvaluesParseOption* = enum
     TopLevel
     CaseInsensitive

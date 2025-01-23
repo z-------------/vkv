@@ -3,10 +3,13 @@
 
 # TODO support `name` pragma
 
+import ./common
 import std/[
   strutils,
   tables,
 ]
+
+export common
 
 proc dumpHook*(s: var string; v: string; depth = 0; topLevel: static bool = false) =
   s.add '"'
