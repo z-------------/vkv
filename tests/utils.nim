@@ -10,7 +10,7 @@ proc readTestFile*(filename: Path): string =
   readFile(string path)
 
 proc readVKVTestFile*(filename: Path): string =
-  var data = readTestFile("ValveKeyValue".Path / filename)
+  var data = readTestFile("ValveKeyValue/ValveKeyValue/ValveKeyValue.Test/Test Data/Text".Path / filename)
   # TODO is this the correct solution? should we instead modify the parser to handle it?
   data.removePrefix("\xEF\xBB\xBF")
   data
