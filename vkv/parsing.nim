@@ -9,7 +9,7 @@ import std/[
   tables,
   unicode,
 ]
-from std/strutils import parseBiggestInt, parseInt, parseFloat
+from std/strutils import parseBiggestInt, parseInt, parseFloat, removePrefix
 
 export common
 
@@ -205,6 +205,9 @@ proc parseHook*[T: object](s: string; i: var int; v: out T; opts: set[KeyvaluesP
 proc fromKeyvalues*(t: typedesc; s: string; opts: set[KeyvaluesParseOption] = {}): t =
   result = default(t)
   var i = 0
+  var s = s
+  # TODO is this the correct solution?
+  s.removePrefix("\xEF\xBB\xBF")
   parseHook(s, i, result, opts + {TopLevel})
   skipJunk(s, i)
   if i < s.len:
